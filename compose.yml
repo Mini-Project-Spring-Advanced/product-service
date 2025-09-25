@@ -1,0 +1,40 @@
+services:
+  db-product:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - db_data_product:/var/lib/postgresql/data
+    ports:
+      - "5442:5432"
+    networks:
+      - mini-project-net
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: ${KEYCLOAK_ISSUER_URI}
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE}
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: ${ZIPKIN_TRACING_ENDPOINT}
+    ports:
+      - "9094:9094"
+    networks:
+      - mini-project-net
+    depends_on:
+      - db-product
+
+volumes:
+  db_data_product:
+
+networks:
+  mini-project-net:
+    external: true
